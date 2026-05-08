@@ -25,16 +25,18 @@ function App() {
   }, [inputText, targetLang, style]);
 
   return (
-    <div className="h-screen bg-white flex flex-col overflow-hidden">
+    <div className="h-screen bg-white flex flex-col overflow-hidden relative">
       <Header />
       <LanguageBar />
 
-      <main className="flex-1 flex flex-col lg:flex-row translate-container">
+      <main className="flex-1 flex flex-col lg:flex-row translate-container pb-14">
         <InputPanel />
         <OutputPanel />
       </main>
 
-      <FeatureBar />
+      <div className="absolute bottom-12 left-0 right-0">
+        <FeatureBar />
+      </div>
       <HistoryPanel />
 
       {/* 错误提示 */}

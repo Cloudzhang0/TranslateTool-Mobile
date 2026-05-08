@@ -16,7 +16,7 @@ export const FeatureBar: React.FC = () => {
   const setInputType = useAppStore((s) => s.setInputType);
 
   return (
-    <div className="h-14 flex items-center border-t border-[#DADCE0] bg-white">
+    <div className="h-11 flex items-center border-t border-[#DADCE0] bg-white">
       <div className="flex items-center justify-around translate-container">
         {features.map(({ type, label, icon }) => (
           <button
