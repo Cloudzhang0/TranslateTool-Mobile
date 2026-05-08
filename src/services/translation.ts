@@ -1,33 +1,78 @@
 import { TranslationRequest, TranslationResponse, SpeechRate } from '../types';
 
+// Cloudflare Worker URL（部署后需要替换为你的 Worker URL）
+// 访问 https://cloudzhang0.github.io/TranslateTool 时，会使用这个地址
+const WORKER_URL = import.meta.env.VITE_WORKER_URL || 'https://your-worker-url.workers.dev';
+
+// 百度 API 不支持的语言映射（映射到支持的语言）
+const LANG_MAP: Record<string, string> = {
+  'sv': 'en',  // 瑞典语 → 英语
+  'da': 'en',  // 丹麦语 → 英语
+  'fi': 'en',  // 芬兰语 → 英语
+  'nb': 'no',  // 挪威语 → 挪威语
+};
+
+// 语言检测（简单实现）
+export async function detectLanguage(text: string): Promise<{ language: string; languageName: string; confidence: number }> {
+  // 简单的正则语言检测
+  const patterns: [RegExp, string, string, number][] = [
+    [/[一-鿿]/, 'zh', '中文', 0.95],
+    [/[぀-ゟ゠-ヿ]/, 'ja', '日语', 0.95],
+    [/[가-힯ᄀ-ᇿ]/, 'ko', '韩语', 0.95],
+    [/[؀-ۿ]/, 'ar', '阿拉伯语', 0.95],
+    [/[฀-๿]/, 'th', '泰语', 0.95],
+  ];
+
+  for (const [pattern, lang, name, conf] of patterns) {
+    if (pattern.test(text)) {
+      return { language: lang, languageName: name, confidence: conf };
+    }
+  }
+
+  return { language: 'en', languageName: '英语', confidence: 0.85 };
+}
+
+// 调用 Cloudflare Worker 进行翻译
 export async function translateText(request: TranslationRequest): Promise<TranslationResponse> {
   try {
-    const response = await fetch('/api/translate', {
+    const { text, sourceLang, targetLang } = request;
+
+    // 映射不支持的语言
+    const from = LANG_MAP[sourceLang] || sourceLang || 'auto';
+    const to = LANG_MAP[targetLang] || targetLang || 'en';
+
+    // 调用 Cloudflare Worker
+    const response = await fetch(WORKER_URL, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        text: request.text,
-        source_lang: request.sourceLang,
-        target_lang: request.targetLang,
-        style: request.style,
+        text: text,
+        from: from,
+        to: to,
       }),
     });
 
     if (!response.ok) {
-      throw new Error('翻译请求失败');
+      const errorData = await response.json();
+      throw new Error(errorData.error || '翻译请求失败');
     }
 
     const data = await response.json();
+
+    if (!data.success) {
+      throw new Error(data.error || '翻译失败');
+    }
+
     return {
       success: true,
       data: {
-        sourceLang: data.source_lang || request.sourceLang || 'auto',
-        targetLang: request.targetLang,
+        sourceLang: data.data.from || sourceLang || 'auto',
+        targetLang: targetLang,
         style: request.style,
-        translatedText: data.translated_text,
-        cached: data.cached || false,
+        translatedText: data.data.translatedText,
+        cached: false,
       },
     };
   } catch (error) {
@@ -39,36 +84,7 @@ export async function translateText(request: TranslationRequest): Promise<Transl
   }
 }
 
-export async function detectLanguage(text: string): Promise<{ language: string; languageName: string; confidence: number }> {
-  try {
-    const response = await fetch('/api/detect', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ text }),
-    });
-
-    if (!response.ok) {
-      throw new Error('语言检测失败');
-    }
-
-    const data = await response.json();
-    return {
-      language: data.language,
-      languageName: data.language_name,
-      confidence: data.confidence,
-    };
-  } catch (error) {
-    console.error('Language detection error:', error);
-    return {
-      language: 'auto',
-      languageName: '未知',
-      confidence: 0,
-    };
-  }
-}
-
+// 语音相关函数保持不变
 function ensureVoices(): Promise<SpeechSynthesisVoice[]> {
   const voices = window.speechSynthesis.getVoices();
   if (voices.length > 0) return Promise.resolve(voices);
