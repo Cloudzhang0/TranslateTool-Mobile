@@ -1,0 +1,676 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>翻译工具 - 改版预览</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: 'Roboto', 'Microsoft YaHei', 'PingFang SC', sans-serif;
+    background: #FFFFFF;
+    color: #202124;
+    min-height: 100vh;
+  }
+
+  /* ===== 顶部导航 ===== */
+  .navbar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 16px;
+    background: #FFFFFF;
+    box-shadow: 0 1px 2px 0 rgba(60,64,67,.3), 0 1px 3px 1px rgba(60,64,67,.15);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .navbar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .navbar-icon {
+    width: 24px; height: 24px;
+    background: #1A73E8;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: #FFF; font-weight: 500;
+  }
+  .navbar-title {
+    font-size: 20px;
+    font-weight: 400;
+    color: #202124;
+  }
+  .navbar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .nav-btn {
+    width: 40px; height: 40px;
+    border: none; background: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #5F6368;
+    transition: background 0.2s;
+  }
+  .nav-btn:hover { background: #F1F3F4; color: #202124; }
+
+  /* ===== 语言选择栏 ===== */
+  .language-bar {
+    height: 48px;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid #DADCE0;
+    background: #FFFFFF;
+  }
+  .language-bar-inner {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+  }
+  .lang-btn {
+    background: none; border: none;
+    font-size: 14px; font-weight: 500;
+    padding: 8px 12px;
+    cursor: pointer;
+    color: #5F6368;
+    border-radius: 4px;
+    display: flex; align-items: center; gap: 4px;
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .lang-btn:hover { background: #F1F3F4; }
+  .lang-btn.active {
+    color: #1A73E8;
+  }
+  .lang-btn.active::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 12px;
+    right: 12px;
+    height: 2px;
+    background: #1A73E8;
+  }
+  .lang-btn .arrow-down {
+    width: 16px; height: 16px;
+    display: inline-flex; align-items: center; justify-content: center;
+    font-size: 10px;
+    opacity: 0.7;
+  }
+  .lang-swap {
+    width: 40px; height: 40px;
+    border: none; background: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #5F6368;
+    transition: background 0.2s;
+    margin: 0 8px;
+    flex-shrink: 0;
+  }
+  .lang-swap:hover { background: #F1F3F4; }
+
+  /* ===== 主内容区 ===== */
+  .main-content {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    min-height: calc(100vh - 48px - 48px - 56px);
+  }
+
+  /* ===== 输入面板 ===== */
+  .input-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    border-right: 1px solid #DADCE0;
+    min-height: 300px;
+  }
+  .input-area {
+    flex: 1;
+    padding: 16px 16px 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .input-area textarea {
+    flex: 1;
+    min-height: 200px;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-family: 'Roboto', 'Microsoft YaHei', sans-serif;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #202124;
+    resize: none;
+    width: 100%;
+  }
+  .input-area textarea::placeholder { color: #80868B; }
+  .input-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    border-top: 1px solid #DADCE0;
+    margin-top: 8px;
+  }
+  .action-btn {
+    width: 36px; height: 36px;
+    border: none; background: none;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    color: #5F6368;
+    transition: all 0.2s;
+    font-size: 14px;
+  }
+  .action-btn:hover { background: #F1F3F4; color: #202124; }
+  .action-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .action-btn:disabled:hover { background: none; }
+  .char-count {
+    margin-left: auto;
+    font-size: 12px;
+    color: #80868B;
+    padding: 0 8px;
+  }
+
+  /* ===== 输出面板 ===== */
+  .output-panel {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    background: #F8F9FA;
+    min-height: 300px;
+  }
+  .output-area {
+    flex: 1;
+    padding: 16px 16px 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .output-text {
+    flex: 1;
+    min-height: 200px;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #202124;
+    white-space: pre-wrap;
+  }
+  .output-placeholder {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 42px;
+    color: #80868B;
+    min-height: 200px;
+    user-select: none;
+  }
+  .output-actions {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 0;
+    border-top: 1px solid #DADCE0;
+    margin-top: 8px;
+  }
+
+  /* ===== 底部功能栏 ===== */
+  .feature-bar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    border-top: 1px solid #DADCE0;
+    background: #FFFFFF;
+  }
+  .feature-bar-inner {
+    max-width: 1200px;
+    width: 100%;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    padding: 0 16px;
+  }
+  .feature-btn {
+    background: none; border: none;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 24px;
+    color: #5F6368;
+    transition: color 0.2s;
+    font-size: 12px;
+    font-weight: 500;
+    position: relative;
+  }
+  .feature-btn:hover { color: #202124; }
+  .feature-btn.active { color: #1A73E8; }
+  .feature-btn svg { width: 20px; height: 20px; }
+
+  /* ===== 历史侧栏 ===== */
+  .history-overlay {
+    display: none;
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.12);
+    z-index: 200;
+  }
+  .history-overlay.open { display: block; }
+  .history-panel {
+    position: fixed; right: 0; top: 0;
+    width: 320px; height: 100%;
+    background: #FFFFFF;
+    z-index: 201;
+    transform: translateX(100%);
+    transition: transform 0.3s ease;
+    box-shadow: -2px 0 8px rgba(60,64,67,.15);
+  }
+  .history-panel.open { transform: translateX(0); }
+  .history-header {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 16px; border-bottom: 1px solid #DADCE0;
+  }
+  .history-header h3 { font-size: 16px; font-weight: 500; color: #202124; }
+  .history-close {
+    width: 36px; height: 36px; border: none; background: none;
+    border-radius: 50%; cursor: pointer; color: #5F6368;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .history-close:hover { background: #F1F3F4; }
+  .history-search {
+    padding: 8px 16px; border-bottom: 1px solid #DADCE0;
+  }
+  .history-search input {
+    width: 100%; padding: 8px 12px;
+    border: 1px solid #DADCE0; border-radius: 8px;
+    font-size: 14px; outline: none; color: #202124;
+  }
+  .history-search input:focus { border-color: #1A73E8; }
+  .history-list { flex: 1; overflow: auto; }
+  .history-item {
+    padding: 12px 16px; cursor: pointer; border-bottom: 1px solid #F1F3F4;
+  }
+  .history-item:hover { background: #F8F9FA; }
+  .history-lang {
+    font-size: 12px; color: #5F6368; margin-bottom: 4px;
+  }
+  .history-source {
+    font-size: 14px; color: #202124; margin-bottom: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-target {
+    font-size: 14px; color: #5F6368; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  }
+  .history-empty {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    height: 200px; color: #80868B;
+  }
+
+  /* ===== 设置下拉菜单 ===== */
+  .settings-menu {
+    display: none;
+    position: absolute; right: 0; top: 48px;
+    width: 220px; background: #FFFFFF;
+    border: 1px solid #DADCE0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px 2px rgba(60,64,67,.15);
+    z-index: 150;
+    padding: 8px 0;
+  }
+  .settings-menu.open { display: block; }
+  .settings-section-header {
+    padding: 8px 16px 4px;
+    font-size: 11px; font-weight: 700;
+    color: #1A73E8;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .settings-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: none; background: none;
+    text-align: left;
+    font-size: 14px; color: #202124;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .settings-item:hover { background: #F1F3F4; }
+  .settings-item.active { color: #1A73E8; font-weight: 500; }
+  .settings-divider { height: 1px; background: #DADCE0; margin: 4px 16px; }
+
+  /* ===== 语言下拉弹出 ===== */
+  .lang-dropdown {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    min-width: 200px;
+    max-height: 300px;
+    overflow-y: auto;
+    background: #FFFFFF;
+    border: 1px solid #DADCE0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px 2px rgba(60,64,67,.15);
+    z-index: 200;
+    padding: 8px 0;
+  }
+  .lang-dropdown.open { display: block; }
+  .lang-dropdown-item {
+    display: block;
+    width: 100%;
+    padding: 8px 16px;
+    border: none; background: none;
+    text-align: left;
+    font-size: 14px; color: #202124;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .lang-dropdown-item:hover { background: #F1F3F4; }
+  .lang-dropdown-item.active { color: #1A73E8; font-weight: 500; background: #F1F3F4; }
+
+  /* ===== 通用 SVG 图标样式 ===== */
+  .icon-svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-svg-sm { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .icon-svg-xs { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+
+  /* 声波动画 */
+  @keyframes soundWave { 0%,100%{height:4px}50%{height:16px} }
+  .sound-wave { display:flex; align-items:center; gap:2px; height:20px; }
+  .sound-wave span { width:3px; background:#1A73E8; border-radius:2px; animation:soundWave 0.8s ease-in-out infinite; }
+  .sound-wave span:nth-child(2) { animation-delay:0.1s; }
+  .sound-wave span:nth-child(3) { animation-delay:0.2s; }
+  .sound-wave span:nth-child(4) { animation-delay:0.3s; }
+  .sound-wave span:nth-child(5) { animation-delay:0.4s; }
+
+  /* ===== 响应式 ===== */
+  @media (max-width: 768px) {
+    .main-content { flex-direction: column; }
+    .input-panel { border-right: none; border-bottom: 1px solid #DADCE0; }
+    .language-bar-inner { justify-content: flex-start; overflow-x: auto; gap: 0; }
+    .lang-btn { font-size: 13px; padding: 8px 8px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ==================== 顶部导航 ==================== -->
+<header class="navbar">
+  <div class="navbar-left">
+    <div class="navbar-icon">翻</div>
+    <span class="navbar-title">个人翻译工具</span>
+  </div>
+  <div class="navbar-right">
+    <button class="nav-btn" onclick="toggleHistory()" title="翻译历史">
+      <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+    </button>
+    <div style="position:relative">
+      <button class="nav-btn" onclick="toggleSettings(event)" title="设置">
+        <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+      </button>
+      <!-- 设置下拉菜单 -->
+      <div class="settings-menu" id="settingsMenu">
+        <div class="settings-section-header">翻译风格</div>
+        <button class="settings-item active" onclick="setStyle(this,'standard')">标准</button>
+        <button class="settings-item" onclick="setStyle(this,'casual')">口语</button>
+        <button class="settings-item" onclick="setStyle(this,'formal')">正式</button>
+        <div class="settings-divider"></div>
+        <div class="settings-section-header">朗读语速</div>
+        <button class="settings-item" onclick="setRate(this,'slow')">慢速</button>
+        <button class="settings-item active" onclick="setRate(this,'normal')">正常</button>
+        <button class="settings-item" onclick="setRate(this,'fast')">快速</button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<!-- ==================== 语言选择栏 ==================== -->
+<div class="language-bar">
+  <div class="language-bar-inner">
+    <!-- 源语言 -->
+    <div style="position:relative">
+      <button class="lang-btn active" onclick="toggleLangDropdown('source')">
+        检测语言 <span class="arrow-down">▼</span>
+      </button>
+      <div class="lang-dropdown" id="sourceDropdown">
+        <button class="lang-dropdown-item active" data-lang="auto">检测语言</button>
+        <button class="lang-dropdown-item" data-lang="zh">中文</button>
+        <button class="lang-dropdown-item" data-lang="en">英语</button>
+        <button class="lang-dropdown-item" data-lang="de">德语</button>
+        <button class="lang-dropdown-item" data-lang="ja">日语</button>
+        <button class="lang-dropdown-item" data-lang="ko">韩语</button>
+        <button class="lang-dropdown-item" data-lang="fr">法语</button>
+        <button class="lang-dropdown-item" data-lang="es">西班牙语</button>
+        <button class="lang-dropdown-item" data-lang="ru">俄语</button>
+        <button class="lang-dropdown-item" data-lang="ar">阿拉伯语</button>
+        <button class="lang-dropdown-item" data-lang="pt">葡萄牙语</button>
+        <button class="lang-dropdown-item" data-lang="it">意大利语</button>
+      </div>
+    </div>
+
+    <!-- 交换按钮 -->
+    <button class="lang-swap" title="交换语言">
+      <svg class="icon-svg" viewBox="0 0 24 24" style="width:20px;height:20px"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+    </button>
+
+    <!-- 目标语言 -->
+    <div style="position:relative">
+      <button class="lang-btn active" onclick="toggleLangDropdown('target')">
+        英语 <span class="arrow-down">▼</span>
+      </button>
+      <div class="lang-dropdown" id="targetDropdown">
+        <button class="lang-dropdown-item active" data-lang="en">英语</button>
+        <button class="lang-dropdown-item" data-lang="zh">中文</button>
+        <button class="lang-dropdown-item" data-lang="de">德语</button>
+        <button class="lang-dropdown-item" data-lang="ja">日语</button>
+        <button class="lang-dropdown-item" data-lang="ko">韩语</button>
+        <button class="lang-dropdown-item" data-lang="fr">法语</button>
+        <button class="lang-dropdown-item" data-lang="es">西班牙语</button>
+        <button class="lang-dropdown-item" data-lang="it">意大利语</button>
+        <button class="lang-dropdown-item" data-lang="ru">俄语</button>
+        <button class="lang-dropdown-item" data-lang="ar">阿拉伯语</button>
+        <button class="lang-dropdown-item" data-lang="pt">葡萄牙语</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 主内容区 ==================== -->
+<div class="main-content">
+  <!-- 输入面板 -->
+  <div class="input-panel" id="inputPanel">
+    <div class="input-area">
+      <textarea id="inputText" placeholder="输入要翻译的文本..." oninput="simulateTranslate()"></textarea>
+      <div class="input-actions">
+        <button class="action-btn" title="朗读" onclick="toggleSoundWave(this)">
+          <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <button class="action-btn" title="复制" onclick="copyText('input')">
+          <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+        <span class="char-count" id="charCount">0 个字符</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- 输出面板 -->
+  <div class="output-panel" id="outputPanel">
+    <div class="output-area">
+      <div class="output-placeholder" id="outputPlaceholder">翻译</div>
+      <div class="output-text" id="outputText" style="display:none"></div>
+      <div class="output-actions">
+        <button class="action-btn" title="朗读">
+          <svg class="icon-svg" viewBox="0 0 24 24"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+        </button>
+        <button class="action-btn" title="复制" onclick="copyText('output')">
+          <svg class="icon-svg" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ==================== 底部功能栏 ==================== -->
+<div class="feature-bar">
+  <div class="feature-bar-inner">
+    <button class="feature-btn active">
+      <svg class="icon-svg" viewBox="0 0 24 24"><polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/></svg>
+      <span>文字</span>
+    </button>
+    <button class="feature-btn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+      <span>图片</span>
+    </button>
+    <button class="feature-btn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+      <span>文档</span>
+    </button>
+    <button class="feature-btn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+      <span>网站</span>
+    </button>
+    <button class="feature-btn">
+      <svg class="icon-svg" viewBox="0 0 24 24"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+      <span>语音</span>
+    </button>
+  </div>
+</div>
+
+<!-- ==================== 历史记录侧栏 ==================== -->
+<div class="history-overlay" id="historyOverlay" onclick="toggleHistory()"></div>
+<div class="history-panel" id="historyPanel">
+  <div class="history-header">
+    <h3>翻译历史</h3>
+    <button class="history-close" onclick="toggleHistory()">✕</button>
+  </div>
+  <div class="history-search">
+    <input type="text" placeholder="搜索历史记录...">
+  </div>
+  <div class="history-list">
+    <div class="history-empty">
+      <svg class="icon-svg" style="width:48px;height:48px;margin-bottom:12px;color:#DADCE0" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+      <span>暂无翻译历史</span>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ===== 交互控制 =====
+
+  // 设置菜单
+  function toggleSettings(e) {
+    e.stopPropagation();
+    document.getElementById('settingsMenu').classList.toggle('open');
+  }
+  document.addEventListener('click', function(e) {
+    var menu = document.getElementById('settingsMenu');
+    if (menu.classList.contains('open') && !e.target.closest('.settings-menu') && !e.target.closest('.nav-btn')) {
+      menu.classList.remove('open');
+    }
+  });
+
+  function setStyle(el, value) {
+    document.querySelectorAll('.settings-item').forEach(function(b) { b.classList.remove('active'); });
+    el.classList.add('active');
+  }
+  function setRate(el, value) {
+    document.querySelectorAll('.settings-item:nth-child(n+6)').forEach(function(b) { b.classList.remove('active'); });
+    el.classList.add('active');
+  }
+
+  // 语言下拉菜单
+  function toggleLangDropdown(type) {
+    var id = type === 'source' ? 'sourceDropdown' : 'targetDropdown';
+    var dropdown = document.getElementById(id);
+    var isOpen = dropdown.classList.contains('open');
+    document.querySelectorAll('.lang-dropdown').forEach(function(d) { d.classList.remove('open'); });
+    if (!isOpen) dropdown.classList.add('open');
+  }
+  document.querySelectorAll('.lang-dropdown-item').forEach(function(item) {
+    item.addEventListener('click', function(e) {
+      e.stopPropagation();
+      var dropdown = this.closest('.lang-dropdown');
+      var btn = dropdown.parentElement.querySelector('.lang-btn');
+      btn.childNodes[0].textContent = this.textContent;
+      dropdown.querySelectorAll('.lang-dropdown-item').forEach(function(d) { d.classList.remove('active'); });
+      this.classList.add('active');
+      dropdown.classList.remove('open');
+    });
+  });
+  document.addEventListener('click', function(e) {
+    if (!e.target.closest('.lang-dropdown') && !e.target.closest('.lang-btn')) {
+      document.querySelectorAll('.lang-dropdown').forEach(function(d) { d.classList.remove('open'); });
+    }
+  });
+
+  // 历史记录
+  function toggleHistory() {
+    var panel = document.getElementById('historyPanel');
+    var overlay = document.getElementById('historyOverlay');
+    panel.classList.toggle('open');
+    overlay.classList.toggle('open');
+  }
+
+  // 声波动画
+  function toggleSoundWave(btn) {
+    if (btn.querySelector('.sound-wave')) return;
+    var original = btn.innerHTML;
+    btn.innerHTML = '<div class="sound-wave"><span></span><span></span><span></span><span></span><span></span></div>';
+    setTimeout(function() { btn.innerHTML = original; }, 1500);
+  }
+
+  // 复制
+  function copyText(type) {
+    var text = type === 'input'
+      ? document.getElementById('inputText').value
+      : document.getElementById('outputText').textContent;
+    if (!text.trim()) return;
+    navigator.clipboard.writeText(text).then(function() {
+      var btns = document.querySelectorAll('.action-btn');
+      btns.forEach(function(b) {
+        if (b.title === '复制') {
+          var orig = b.innerHTML;
+          b.innerHTML = '<svg class="icon-svg" viewBox="0 0 24 24" style="color:#1A73E8"><polyline points="20 6 9 17 4 12"/></svg>';
+          setTimeout(function() { b.innerHTML = orig; }, 1200);
+        }
+      });
+    });
+  }
+
+  // 字符计数
+  document.getElementById('inputText').addEventListener('input', function() {
+    document.getElementById('charCount').textContent = this.value.length + ' 个字符';
+  });
+
+  // 模拟翻译
+  function simulateTranslate() {
+    var text = document.getElementById('inputText').value.trim();
+    var placeholder = document.getElementById('outputPlaceholder');
+    var output = document.getElementById('outputText');
+    if (text) {
+      placeholder.style.display = 'none';
+      output.style.display = 'block';
+      // 简单模拟翻译（仅演示效果）
+      var translated = '[翻译] ' + text;
+      output.textContent = translated;
+    } else {
+      placeholder.style.display = 'flex';
+      output.style.display = 'none';
+    }
+  }
+</script>
+
+</body>
+</html>

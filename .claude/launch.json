@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "translate-preview",
+      "runtimeExecutable": "python",
+      "runtimeArgs": ["-m", "http.server", "5174", "-d", "dist"],
+      "port": 5174
+    }
+  ]
+}
