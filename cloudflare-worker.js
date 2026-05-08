@@ -113,6 +113,8 @@ function md5(string) {
   }
 
   function md51(s) {
+    // 将 Unicode 字符串转为 UTF-8 字节（百度翻译要求 UTF-8 编码）
+    s = unescape(encodeURIComponent(s));
     const n = s.length;
     let state = [1732584193, -271733879, -1732584194, 271733878];
     let i;
