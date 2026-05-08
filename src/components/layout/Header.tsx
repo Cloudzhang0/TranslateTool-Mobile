@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from 'react';
 import { useAppStore } from '../../stores/appStore';
-import { Clock, Settings, ChevronDown } from 'lucide-react';
+import { Clock, Settings } from 'lucide-react';
 import { TranslationStyle, SpeechRate } from '../../types';
 
 const styleOptions: { value: TranslationStyle; label: string }[] = [

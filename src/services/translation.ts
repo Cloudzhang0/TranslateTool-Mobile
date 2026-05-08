@@ -38,8 +38,8 @@ export async function translateText(request: TranslationRequest): Promise<Transl
     const { text, sourceLang, targetLang } = request;
 
     // 映射不支持的语言
-    const from = LANG_MAP[sourceLang] || sourceLang || 'auto';
-    const to = LANG_MAP[targetLang] || targetLang || 'en';
+    const from = (sourceLang && LANG_MAP[sourceLang]) || sourceLang || 'auto';
+    const to = (targetLang && LANG_MAP[targetLang]) || targetLang || 'en';
 
     // 调用 Cloudflare Worker
     const response = await fetch(WORKER_URL, {

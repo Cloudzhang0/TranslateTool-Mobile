@@ -6,7 +6,7 @@ import { DocumentInput } from '../input/DocumentInput';
 import { WebsiteInput } from '../input/WebsiteInput';
 import { VoiceInput } from '../input/VoiceInput';
 import { useSpeech } from '../../hooks/useSpeech';
-import { Mic, Volume2, Copy, Check } from 'lucide-react';
+import { Volume2, Copy, Check } from 'lucide-react';
 
 export const InputPanel: React.FC = () => {
   const inputType = useAppStore((s) => s.input.type);
