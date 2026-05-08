@@ -45,7 +45,7 @@ export const Header: React.FC = () => {
     >
       <div className="flex items-center justify-between translate-container">
         <div className="flex items-center gap-2">
-          <img src="/favicon.svg" alt="翻译" className="w-6 h-6" />
+          <img src={`${import.meta.env.BASE_URL}favicon.svg`} alt="翻译" className="w-6 h-6" />
           <h1 className="text-xl font-medium text-[#202124]">个人翻译工具</h1>
         </div>
 
