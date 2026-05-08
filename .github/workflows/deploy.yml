@@ -34,6 +34,7 @@ jobs:
         run: npm run build
         env:
           NODE_ENV: production
+          VITE_WORKER_URL: https://translatetool.cloud-zhang.workers.dev
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
