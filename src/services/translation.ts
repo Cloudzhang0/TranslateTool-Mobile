@@ -329,8 +329,15 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
       return;
     }
 
-    // 修复：先取消之前的朗读，重置 speechSynthesis 状态（解决第二次朗读失效的问题）
+    // 修复移动端第二次朗读失效：cancel 后引擎可能卡在 paused/suspended 状态
+    // 需要 cancel + resume + 延迟 才能可靠地重新启动
     window.speechSynthesis.cancel();
+    if (window.speechSynthesis.paused) {
+      window.speechSynthesis.resume();
+    }
+
+    // 等待引擎状态重置（移动端 Chrome 需要这个延迟）
+    await new Promise(r => setTimeout(r, 150));
 
     const rateMap: Record<SpeechRate, number> = { slow: 0.7, normal: 1.0, fast: 1.5 };
     const utterance = new SpeechSynthesisUtterance(text);
@@ -346,7 +353,6 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
 
     utterance.onend = () => resolve();
     utterance.onerror = (event) => {
-      // cancel() 触发的 "canceled" 错误是正常的，不算失败
       if (event.error === 'canceled') {
         resolve();
       } else {
