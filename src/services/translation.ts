@@ -323,34 +323,33 @@ function findBestVoice(voices: SpeechSynthesisVoice[], lang: string): SpeechSynt
 }
 
 export async function speakText(text: string, lang: string, rate: SpeechRate = 'normal'): Promise<void> {
-  return new Promise(async (resolve, reject) => {
-    if (!('speechSynthesis' in window)) {
-      reject(new Error('浏览器不支持语音合成'));
-      return;
-    }
+  if (!('speechSynthesis' in window)) {
+    throw new Error('浏览器不支持语音合成');
+  }
 
-    // 修复移动端第二次朗读失效：cancel 后引擎可能卡在 paused/suspended 状态
-    // 需要 cancel + resume + 延迟 才能可靠地重新启动
-    window.speechSynthesis.cancel();
-    if (window.speechSynthesis.paused) {
-      window.speechSynthesis.resume();
-    }
+  // 重置引擎状态：cancel + resume 确保引擎就绪
+  window.speechSynthesis.cancel();
+  if (window.speechSynthesis.paused) {
+    window.speechSynthesis.resume();
+  }
 
-    // 等待引擎状态重置（移动端 Chrome 需要这个延迟）
-    await new Promise(r => setTimeout(r, 150));
+  // 延迟等引擎完全重置（移动端 Chrome 必须）
+  await new Promise(r => setTimeout(r, 150));
 
-    const rateMap: Record<SpeechRate, number> = { slow: 0.7, normal: 1.0, fast: 1.5 };
-    const utterance = new SpeechSynthesisUtterance(text);
-    utterance.lang = lang;
-    utterance.rate = rateMap[rate];
-    utterance.pitch = 1.0;
+  const rateMap: Record<SpeechRate, number> = { slow: 0.7, normal: 1.0, fast: 1.5 };
+  const utterance = new SpeechSynthesisUtterance(text);
+  utterance.lang = lang;
+  utterance.rate = rateMap[rate];
+  utterance.pitch = 1.0;
 
-    const voices = await ensureVoices();
-    const best = findBestVoice(voices, lang);
-    if (best) {
-      utterance.voice = best;
-    }
+  const voices = await ensureVoices();
+  const best = findBestVoice(voices, lang);
+  if (best) {
+    utterance.voice = best;
+  }
 
+  // 只在 speak() 回调处包装 Promise
+  return new Promise<void>((resolve, reject) => {
     utterance.onend = () => resolve();
     utterance.onerror = (event) => {
       if (event.error === 'canceled') {
@@ -359,7 +358,6 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
         reject(event.error);
       }
     };
-
     window.speechSynthesis.speak(utterance);
   });
 }
