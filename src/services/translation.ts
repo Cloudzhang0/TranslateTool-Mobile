@@ -327,14 +327,13 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
     throw new Error('浏览器不支持语音合成');
   }
 
-  // 重置引擎状态：cancel + resume 确保引擎就绪
-  window.speechSynthesis.cancel();
-  if (window.speechSynthesis.paused) {
-    window.speechSynthesis.resume();
-  }
+  const synth = window.speechSynthesis;
 
-  // 延迟等引擎完全重置（移动端 Chrome 必须）
-  await new Promise(r => setTimeout(r, 150));
+  // 重置引擎状态
+  synth.cancel();
+  if (synth.paused) {
+    synth.resume();
+  }
 
   const rateMap: Record<SpeechRate, number> = { slow: 0.7, normal: 1.0, fast: 1.5 };
   const utterance = new SpeechSynthesisUtterance(text);
@@ -342,13 +341,30 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
   utterance.rate = rateMap[rate];
   utterance.pitch = 1.0;
 
-  const voices = await ensureVoices();
-  const best = findBestVoice(voices, lang);
-  if (best) {
-    utterance.voice = best;
+  // 尝试用已缓存的语音（同步，不阻塞用户手势）
+  const cachedVoices = synth.getVoices();
+  if (cachedVoices.length > 0) {
+    const best = findBestVoice(cachedVoices, lang);
+    if (best) {
+      utterance.voice = best;
+    }
   }
 
-  // 只在 speak() 回调处包装 Promise
+  // 立即调用 speak()，保持在用户手势的同步调用栈内
+  synth.speak(utterance);
+
+  // speak() 之后异步加载语音（如果还没加载完），更新 voice 属性
+  if (cachedVoices.length === 0) {
+    ensureVoices().then((voices) => {
+      const best = findBestVoice(voices, lang);
+      if (best && utterance.voice === null) {
+        // 只在尚未开始播放时更新（speak 排队中）
+        utterance.voice = best;
+      }
+    });
+  }
+
+  // 等待朗读完成
   return new Promise<void>((resolve, reject) => {
     utterance.onend = () => resolve();
     utterance.onerror = (event) => {
@@ -358,7 +374,6 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
         reject(event.error);
       }
     };
-    window.speechSynthesis.speak(utterance);
   });
 }
 
