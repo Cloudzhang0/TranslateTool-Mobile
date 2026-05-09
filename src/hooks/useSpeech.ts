@@ -2,11 +2,26 @@ import { useCallback, useRef } from 'react';
 import { useAppStore } from '../stores/appStore';
 import { speakText } from '../services/translation';
 
+const SPEECH_ERROR_MSGS: Record<string, string> = {
+  'not-allowed': '请允许麦克风权限后重试',
+  'no-speech': '未检测到语音，请靠近麦克风重试',
+  'audio-capture': '无法捕获音频，请检查麦克风设备',
+  'network': '语音服务网络错误，请检查网络连接',
+  'service-not-allowed': '当前浏览器不支持语音服务，请使用 Chrome 浏览器',
+  'language-not-supported': '不支持当前语言的语音识别',
+  'aborted': '语音识别已取消',
+};
+
 export const useSpeech = () => {
   const recognitionRef = useRef<any>(null);
 
   const speak = useCallback(async (text: string, lang: string) => {
     if (!text.trim()) return;
+
+    if (!('speechSynthesis' in window)) {
+      useAppStore.getState().setError('当前浏览器不支持语音播放，请使用 Chrome 或 Edge 浏览器');
+      return;
+    }
 
     const { settings } = useAppStore.getState();
     useAppStore.getState().setIsSpeaking(true);
@@ -14,7 +29,7 @@ export const useSpeech = () => {
       await speakText(text, lang, settings.speechRate);
     } catch (error) {
       console.error('Speech error:', error);
-      useAppStore.getState().setError('语音播放失败');
+      useAppStore.getState().setError('语音播放失败，请使用 Chrome 或 Edge 浏览器');
     } finally {
       useAppStore.getState().setIsSpeaking(false);
     }
@@ -38,7 +53,7 @@ export const useSpeech = () => {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
 
     if (!SpeechRecognition) {
-      useAppStore.getState().setError('浏览器不支持语音识别');
+      useAppStore.getState().setError('当前浏览器不支持语音识别，请使用 Chrome 浏览器');
       return;
     }
 
@@ -65,7 +80,8 @@ export const useSpeech = () => {
 
     recognition.onerror = (event: any) => {
       console.error('Speech recognition error:', event.error);
-      useAppStore.getState().setError('语音识别错误: ' + event.error);
+      const msg = SPEECH_ERROR_MSGS[event.error] || `语音识别错误: ${event.error}`;
+      useAppStore.getState().setError(msg);
       useAppStore.getState().setIsRecording(false);
     };
 

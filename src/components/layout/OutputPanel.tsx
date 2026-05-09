@@ -28,7 +28,7 @@ export const OutputPanel: React.FC = () => {
       <div className="flex-1 px-4 py-2 flex flex-col overflow-auto">
         {isTranslating ? (
           <div className="flex-1 flex items-center justify-center">
-            <Loader2 className="w-48 h-48 text-[#1A73E8] animate-spin" strokeWidth={3} />
+            <Loader2 className="w-[154px] h-[154px] text-[#1A73E8] animate-spin" strokeWidth={3} />
           </div>
         ) : translatedText ? (
           <div className="text-base text-[#202124] whitespace-pre-wrap leading-6">
