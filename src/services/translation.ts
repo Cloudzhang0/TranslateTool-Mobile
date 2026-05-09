@@ -329,6 +329,9 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
       return;
     }
 
+    // 修复：先取消之前的朗读，重置 speechSynthesis 状态（解决第二次朗读失效的问题）
+    window.speechSynthesis.cancel();
+
     const rateMap: Record<SpeechRate, number> = { slow: 0.7, normal: 1.0, fast: 1.5 };
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = lang;
@@ -342,7 +345,14 @@ export async function speakText(text: string, lang: string, rate: SpeechRate = '
     }
 
     utterance.onend = () => resolve();
-    utterance.onerror = (event) => reject(event.error);
+    utterance.onerror = (event) => {
+      // cancel() 触发的 "canceled" 错误是正常的，不算失败
+      if (event.error === 'canceled') {
+        resolve();
+      } else {
+        reject(event.error);
+      }
+    };
 
     window.speechSynthesis.speak(utterance);
   });
