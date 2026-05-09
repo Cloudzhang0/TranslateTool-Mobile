@@ -4,7 +4,6 @@ import { TextInput } from '../input/TextInput';
 import { ImageInput } from '../input/ImageInput';
 import { DocumentInput } from '../input/DocumentInput';
 import { WebsiteInput } from '../input/WebsiteInput';
-import { VoiceInput } from '../input/VoiceInput';
 import { useSpeech } from '../../hooks/useSpeech';
 import { Volume2, Copy, Check } from 'lucide-react';
 
@@ -32,13 +31,12 @@ export const InputPanel: React.FC = () => {
       case 'image': return <ImageInput />;
       case 'document': return <DocumentInput />;
       case 'website': return <WebsiteInput />;
-      case 'voice': return <VoiceInput />;
       default: return <TextInput />;
     }
   };
 
   return (
-    <div className="flex flex-col h-[35vh] lg:h-auto lg:flex-1 lg:min-h-[400px]">
+    <div className="flex flex-col h-[23vh] lg:h-auto lg:flex-1 lg:min-h-[400px]">
       {/* 输入内容区 */}
       <div className="flex-1 overflow-auto px-4 py-2">
         {renderInputComponent()}

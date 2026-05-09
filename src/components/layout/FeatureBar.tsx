@@ -1,14 +1,13 @@
 import React from 'react';
 import { useAppStore } from '../../stores/appStore';
 import { InputType } from '../../types';
-import { Type, Image, FileText, Globe, Mic } from 'lucide-react';
+import { Type, Image, FileText, Globe } from 'lucide-react';
 
 const features: { type: InputType; label: string; icon: React.ReactNode }[] = [
   { type: 'text', label: '文字', icon: <Type className="w-5 h-5" /> },
   { type: 'image', label: '图片', icon: <Image className="w-5 h-5" /> },
   { type: 'document', label: '文档', icon: <FileText className="w-5 h-5" /> },
   { type: 'website', label: '网站', icon: <Globe className="w-5 h-5" /> },
-  { type: 'voice', label: '语音', icon: <Mic className="w-5 h-5" /> },
 ];
 
 export const FeatureBar: React.FC = () => {
