@@ -38,7 +38,7 @@ export const InputPanel: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col flex-1 min-h-[300px] lg:min-h-[400px]">
+    <div className="flex flex-col flex-1 min-h-[200px] max-h-[300px] lg:min-h-[400px] lg:max-h-none">
       {/* 输入内容区 */}
       <div className="flex-1 overflow-auto px-4 py-2">
         {renderInputComponent()}

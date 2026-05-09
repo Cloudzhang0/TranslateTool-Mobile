@@ -23,7 +23,7 @@ export const OutputPanel: React.FC = () => {
   }, [translatedText, setCopySuccess]);
 
   return (
-    <div className="flex flex-col flex-1 min-h-[300px] lg:min-h-[400px] lg:border-l border-[#DADCE0] relative bg-[#F8F9FA]">
+    <div className="flex flex-col flex-1 min-h-[200px] max-h-[300px] lg:min-h-[400px] lg:max-h-none lg:border-l border-[#DADCE0] relative bg-[#F8F9FA]">
       {/* 翻译结果区 */}
       <div className="flex-1 px-4 py-2 flex flex-col overflow-auto">
         {isTranslating ? (
