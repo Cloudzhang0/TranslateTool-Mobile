@@ -29,14 +29,12 @@ function App() {
       <Header />
       <LanguageBar />
 
-      <main className="flex-1 flex flex-col lg:flex-row translate-container pb-14">
+      <main className="flex-none flex flex-col lg:flex-row translate-container">
         <InputPanel />
         <OutputPanel />
       </main>
 
-      <div className="absolute bottom-12 left-0 right-0">
-        <FeatureBar />
-      </div>
+      <FeatureBar />
       <HistoryPanel />
 
       {/* 错误提示 */}
