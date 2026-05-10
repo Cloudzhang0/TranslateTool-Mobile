@@ -1,74 +1,74 @@
-# 个人翻译工具
+# 个人翻译工具（移动版）
 
-一款基于 Google 翻译风格设计的免费翻译工具，支持文本翻译、图片 OCR、文档解析、网页抓取和语音输入，提供标准/口语/正式三种翻译风格。
+一款为移动端优化的 Google 翻译风格翻译工具，纯前端架构，无需后端服务器。支持文本翻译、图片 OCR、文档解析、网页抓取和语音输入。
+
+**在线体验**：https://cloudzhang0.github.io/TranslateTool/mobile/
 
 ## 功能特性
 
-- **五种输入方式**：文字翻译、图片 OCR、文档解析、网页抓取、语音输入
+- **四种输入方式**：文字翻译、图片 OCR、文档解析、网页抓取
 - **智能翻译**：支持标准、口语、正式三种翻译风格
-- **语言自动检测**：自动识别输入语言（中/英/日/韩/阿/泰）
-- **语音功能**：语音输入（浏览器语音识别）+ 语音朗读（美式发音）
-- **翻译历史**：本地存储，支持搜索
-- **响应式设计**：桌面端双栏并排，移动端单栏堆叠
-- **简洁界面**：Google 翻译风格 UI，纯白背景，扁平设计
+- **语言自动检测**：自动识别输入语言（中/英/日/韩/阿/泰等）
+- **语音朗读**：基于 Web Speech API，移动端优化（保持用户手势链）
+- **翻译历史**：本地存储，支持搜索和一键复用
+- **移动端优先**：单栏竖排布局，面板高度使用 `vh` 单位适配各屏幕
 
 ## 技术栈
 
 | 层级 | 技术 |
 |------|------|
-| **前端框架** | React 19 + TypeScript 6 |
-| **构建工具** | Vite 8 |
-| **样式方案** | Tailwind CSS 4 |
-| **状态管理** | Zustand 5 |
+| **前端框架** | React 19 + TypeScript |
+| **构建工具** | Vite |
+| **样式方案** | Tailwind CSS |
+| **状态管理** | Zustand |
 | **图标库** | Lucide React |
-| **后端** | Python Flask（替代原 Express.js） |
-| **翻译引擎** | translators 库 v6.0.4（引擎回退链） |
+| **翻译 API** | 百度翻译 API（前端直接调用，CORS 代理降级） |
+| **部署** | GitHub Pages + Cloudflare Worker |
+
+## 架构特点
+
+**纯前端架构**：无需 Flask/Express 等后端服务器，翻译请求从前端直接发送到百度翻译 API。
+
+**CORS 代理降级策略**：
+1. **直接调用** → 2. **corsproxy.io 代理** → 3. **allorigins 代理**
+
+**Cloudflare Worker**：用于 GitHub Pages 部署时保护百度翻译 API 密钥。
 
 ## 快速开始
 
-### 1. 安装前端依赖
+### 1. 安装依赖
 
 ```bash
 npm install
 ```
 
-### 2. 安装并启动后端（Flask 翻译服务）
-
-```bash
-cd server
-pip install translators flask flask-cors python-dotenv
-python app.py
-```
-
-后端默认运行在 `http://localhost:3001`。
-
-### 3. 启动前端
+### 2. 启动开发服务器
 
 ```bash
 npm run dev
 ```
 
-前端默认运行在 `http://localhost:5173`，API 请求通过 Vite 代理自动转发到后端。
+前端默认运行在 `http://localhost:5173`，翻译功能直接调用百度 API（开发环境下通过 CORS 代理降级）。
 
-### 4. 同时启动（需要 concurrently）
+### 3. 构建并部署
 
 ```bash
-npm run dev:all
+npm run build
 ```
+
+构建产物输出到 `dist/`，通过 GitHub Actions 自动部署到 GitHub Pages。
 
 ## 项目结构
 
 ```
-translate-tool/
+translate-tool-mobile-new/
 ├── index.html                    # 入口 HTML
 ├── package.json                  # 前端依赖配置
-├── vite.config.ts                # Vite + API 代理配置
-├── tsconfig.json                 # TypeScript 配置
-├── public/
-│   ├── favicon.svg               # 标签页图标
-│   └── icons.svg                 # 功能图标
-├── server/
-│   └── app.py                    # Flask 后端翻译服务
+├── vite.config.ts                # Vite 配置
+├── cloudflare-worker.js          # Cloudflare Worker（保护 API 密钥）
+├── DEPLOYMENT.md                 # 部署文档
+├── server/                       # Flask 后端（OCR/文档/网页抓取，翻译不经过此后端）
+│   └── app.py
 └── src/
     ├── main.tsx                  # React 入口
     ├── App.tsx                   # 应用根组件（布局编排）
@@ -76,13 +76,13 @@ translate-tool/
     ├── types/index.ts            # TypeScript 类型定义
     ├── stores/appStore.ts        # Zustand 全局状态
     ├── services/
-    │   ├── translation.ts        # 翻译 API + 语音合成
+    │   ├── translation.ts        # 百度翻译 API + 语音合成（纯前端）
     │   ├── ocr.ts                # 图片 OCR 服务
     │   ├── document.ts           # 文档解析服务
     │   └── website.ts            # 网页抓取服务
     ├── hooks/
     │   ├── useTranslation.ts     # 翻译逻辑 Hook
-    │   ├── useSpeech.ts          # 语音输入/输出 Hook
+    │   ├── useSpeech.ts          # 语音朗读 Hook
     │   └── useHistory.ts         # 历史记录 Hook
     ├── utils/
     │   ├── language.ts           # 语言列表和工具函数
@@ -93,81 +93,64 @@ translate-tool/
         │   ├── LanguageBar.tsx   # 语言选择栏
         │   ├── InputPanel.tsx    # 输入面板
         │   ├── OutputPanel.tsx   # 输出面板
-        │   ├── FeatureBar.tsx    # 底部功能栏
+        │   ├── FeatureBar.tsx    # 底部功能栏（4 个图标按钮）
         │   └── HistoryPanel.tsx  # 历史记录侧边栏
         └── input/
             ├── TextInput.tsx     # 文本输入
             ├── ImageInput.tsx    # 图片上传
             ├── DocumentInput.tsx # 文档上传
-            ├── WebsiteInput.tsx  # 网址输入
-            └── VoiceInput.tsx    # 语音输入
+            └── WebsiteInput.tsx  # 网址输入
 ```
-
-## API 接口
-
-| 接口 | 方法 | 说明 |
-|------|------|------|
-| `/api/detect` | POST | 语言检测 |
-| `/api/translate` | POST | 翻译（含缓存） |
-| `/api/ocr` | POST | 图片文字识别 |
-| `/api/document/parse` | POST | 文档解析 |
-| `/api/website/extract` | POST | 网页抓取 |
-| `/api/health` | GET | 健康检查 |
-
-## 设计规范
-
-采用 Google 翻译风格配色方案：
-
-- 背景色：`#FFFFFF`
-- 主色：`#1A73E8`
-- 文字主色：`#202124`
-- 文字次要：`#5F6368`
-- 边框：`#DADCE0`
-- 悬停背景：`#F1F3F4`
-- 输出区背景：`#F8F9FA`
-- 占位符：`#80868B`
-- 字体：Roboto + 微软雅黑
 
 ## 环境要求
 
 - Node.js 18+
-- Python 3.x
-- 现代浏览器（Chrome、Edge 推荐）
+- 现代浏览器（Chrome、Edge、Safari 推荐）
 
 ---
 
-## 开发历程总结
+## 开发历程
 
-### 主要改造
+### 架构演进
 
-1. **UI 重构**：从渐变背景、毛玻璃风格全面改造为 Google 翻译风格的扁平白色设计
-2. **后端迁移**：Express.js → Python Flask，使用 translators 库免费翻译，无需 API Key
+1. **初版**：Express.js 后端 + `translators` 库
+2. **Flask 迁移**：后端迁移到 Python Flask
+3. **纯前端化**：移除后端依赖，翻译 API 改为前端直接调用百度翻译 API + CORS 代理降级
 
-### 遇到的主要问题
+### UI 演进
 
-#### 1. 翻译引擎超时导致 500 错误
-- **原因**：Bing 引擎极慢（>15s），Flask 单线程被阻塞
-- **解决**：改用 alibaba 引擎、8 秒超时、4 引擎回退链 + 2 次重试
-- **经验**：调用第三方库必须设计超时和降级策略
+1. **初版**：渐变背景、毛玻璃导航栏
+2. **Google 风格重构**：纯白背景、扁平设计、Google 翻译配色
+3. **移动端优化**：面板高度改为 `vh` 单位（23vh），适配不同屏幕尺寸
 
-#### 2. 默认目标语言错误
-- **原因**：targetLang 默认 `'zh'`，导致中文→中文无意义翻译
-- **解决**：默认改为 `'en'`（英语）
-- **经验**：默认值直接影响用户体验，需仔细验证
+### 解决的关键问题
 
-#### 3. 语音朗读英国腔调
+#### 1. 移动端语音朗读第二次失效
+- **原因**：Web Speech API 要求 `speechSynthesis.speak()` 必须在用户手势（click）的**同一同步调用栈**中调用。代码中使用了 `await`（如加载语音列表），导致调用栈中断，浏览器拒绝执行朗读
+- **解决**：
+  - 移除 `speak()` 之前的所有 `await`，改为同步调用
+  - 仅使用浏览器已缓存的语音列表（`getVoices()` 同步返回）
+  - 每次调用前执行 `cancel()` + `resume()` 重置引擎状态
+- **经验**：移动端浏览器对用户手势链的要求比桌面端严格得多，任何 `await` 都会破坏手势链
+
+#### 2. 百度翻译 Invalid Sign 错误
+- **原因**：MD5 签名计算时未正确处理中文 UTF-8 编码
+- **解决**：在 MD5 实现中使用 `unescape(encodeURIComponent(s))` 确保 UTF-8 字节编码
+- **经验**：涉及多语言文本的 API 签名必须统一使用 UTF-8 编码
+
+#### 3. CORS 跨域问题
+- **原因**：百度翻译 API 不支持浏览器跨域请求
+- **解决**：实现三级降级策略 — 直接调用 → corsproxy.io → allorigins
+- **经验**：公共 CORS 代理不稳定，需要多个备选方案
+
+#### 4. 语音朗读英国腔调
 - **原因**：浏览器默认英语语音是英式的（Microsoft David）
-- **解决**：加载语音列表后优先选择 en-US 美式语音
+- **解决**：加载语音列表后优先选择 en-US 美式语音（Zira/Mark/Steffan）
 - **经验**：`speechSynthesis.getVoices()` 需等待异步加载完成
 
-#### 4. Flask 进程管理
-- **原因**：调试模式下 Flask 启动两个进程（reloader + worker），多次重启导致端口冲突
-- **解决**：使用 `wmic process` 清理旧进程
-- **经验**：Windows 上需专门的进程管理策略
+### 经验总结
 
-### 可吸取的经验
-
-- **先预览再修改**：大规模 UI 重构前先做独立预览页，确认效果后再改源码
+- **移动端用户手势链**：Web Speech API 等敏感操作必须在同步调用栈中完成，不能有 `await`
 - **选择器模式**：Zustand 的选择器按需订阅，避免不必要的渲染
-- **配色变量化**：CSS 变量集中管理色板，便于统一修改
-- **引擎回退链**：多服务提供商的场景下，按优先级依次尝试是提高可用性的有效模式
+- **CORS 降级策略**：前端直接调用第三方 API 时，需准备多个代理备选方案
+- **vh 布局**：移动端使用 `vh` 单位比固定 `px` 更能适配不同屏幕

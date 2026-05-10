@@ -5,12 +5,19 @@ const BAIDU_APP_ID = '20260508002608997';
 const BAIDU_SECRET_KEY = 'r7QE_JA0kEvC34H0mtxI';
 const BAIDU_API_URL = 'https://fanyi-api.baidu.com/api/trans/vip/translate';
 
-// 百度 API 不支持的语言映射（映射到支持的语言）
+// 前端语言代码 → 百度 API 语言代码映射
+// ISO 639-1 代码与百度 API 代码不同的语言
 const LANG_MAP: Record<string, string> = {
-  'sv': 'en',  // 瑞典语 → 英语
-  'da': 'en',  // 丹麦语 → 英语
-  'fi': 'en',  // 芬兰语 → 英语
-  'nb': 'no',  // 挪威语 → 挪威语
+  'ja': 'jp',    // 日语
+  'ko': 'kor',   // 韩语
+  'fr': 'fra',   // 法语
+  'es': 'spa',   // 西班牙语
+  'ar': 'ara',   // 阿拉伯语
+  'vi': 'vie',   // 越南语
+  'sv': 'en',    // 瑞典语 → 英语（百度不支持）
+  'da': 'en',    // 丹麦语 → 英语（百度不支持）
+  'fi': 'en',    // 芬兰语 → 英语（百度不支持）
+  'nb': 'no',    // 挪威语
 };
 
 // MD5 实现
